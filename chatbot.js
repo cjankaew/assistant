@@ -10,8 +10,16 @@ exports.chatbot = functions
       const lineUid =
         request.body.originalDetectIntentRequest.payload.data.source.userId;
 
-      async function question1(agent) {
-        await agent.add("Received!");
+      async function showData(agent) {
+        const userData = db.collection(lineUid).doc("UserData");
+        const data = await userData.get();
+        const name = data.data().Name;
+        const salary = data.data().Salary;
+        if (data.exists) {
+          agent.add(`You're ${name}.\n Your salary is ${salary} `);
+        } else {
+          agent.add("No Data");
+        }
       }
 
       async function startRecord(agent) {
@@ -20,10 +28,9 @@ exports.chatbot = functions
         const userData = {
           Name: name,
           Salary: salary,
-          LindUid: lineUid,
         };
         if (lineUid.length > 0) {
-          db.collection(name).doc("UserData").set(userData);
+          db.collection(lineUid).doc("UserData").set(userData);
         }
         // await agent.add(`Im receive ${name} and Your have ${salary}`);
         await agent.add("Start to good Passive Income!");
@@ -31,7 +38,7 @@ exports.chatbot = functions
 
       const intentMap = new Map();
 
-      intentMap.set("Question 1", question1);
+      intentMap.set("Show Data", showData);
       intentMap.set("Start Record", startRecord);
       agent.handleRequest(intentMap);
     });
