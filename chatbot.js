@@ -16,24 +16,33 @@ exports.chatbot = functions
         const name = data.data().Name;
         const salary = data.data().Salary;
         if (data.exists) {
-          agent.add(`You're ${name}.\n Your salary is ${salary} `);
+          agent.add(`You're ${name}.\nYour salary is ${salary} `);
         } else {
           agent.add("No Data");
         }
       }
 
       async function startRecord(agent) {
-        const name = agent.parameters["name"];
-        const salary = agent.parameters["salary"];
-        const userData = {
-          Name: name,
-          Salary: salary,
-        };
-        if (lineUid.length > 0) {
-          db.collection(lineUid).doc("UserData").set(userData);
+        const checkId = db.collection(lineUid).doc("UserData");
+        const data = await checkId.get();
+        const checkLineUid = data.data().LineUid;
+        if (checkLineUid != lineUid) {
+          const name = agent.parameters["name"];
+          const salary = agent.parameters["salary"];
+          const userData = {
+            Name: name,
+            Salary: salary,
+            LineUid: lineUid,
+          };
+          if (lineUid.length > 0) {
+            db.collection(lineUid).doc("UserData").set(userData);
+          }
+          // await agent.add(`Im receive ${name} and Your have ${salary}`);
+          await agent.add("Start to good Passive Income!");
+          await agent.add(`${data.LineUid} and ${lineUid}`);
+        } else {
+          await agent.add("You registered");
         }
-        // await agent.add(`Im receive ${name} and Your have ${salary}`);
-        await agent.add("Start to good Passive Income!");
       }
 
       const intentMap = new Map();
